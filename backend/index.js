@@ -33,8 +33,8 @@ app.post('/api/webhooks/github', async (req, res) => {
 
     const { action, pull_request, repository } = req.body;
     
-    // We only want to review when PR is opened or new commits are pushed (synchronize)
-    if (!['opened', 'synchronize'].includes(action)) {
+    // We only want to review when PR is opened, reopened, or new commits are pushed (synchronize)
+    if (!['opened', 'synchronize', 'reopened'].includes(action)) {
       return res.status(200).send(`Ignored: Action is ${action}`);
     }
 
