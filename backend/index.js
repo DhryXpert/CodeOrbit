@@ -81,25 +81,39 @@ app.post('/api/webhooks/github', async (req, res) => {
     res.status(202).send('Accepted for processing');
 
     // --- Start Background Processing ---
-    console.log('Fetching diffs...');
-    const diffs = await getPRDiffs(repoFullName, prNumber, githubToken);
-    
-    if (diffs.includes('Pas de patch disponible') && diffs.split('---').length <= 2) {
-      console.log('No actual code changes found.');
-      return;
+    try {
+      console.log('Fetching diffs...');
+      const diffs = await getPRDiffs(repoFullName, prNumber, githubToken);
+      
+      if (diffs.includes('Pas de patch disponible') && diffs.split('---').length <= 2) {
+        console.log('No actual code changes found.');
+        await db.collection('webhook_logs').add({ repoFullName, prNumber, status: 'ignored_no_patch', timestamp: new Date() });
+        return;
+      }
+
+      console.log('Generating AI Review with Gemini...');
+      const aiReviewText = await generateReview(diffs);
+
+      console.log('Posting review to GitHub...');
+      await postPRComment(repoFullName, prNumber, aiReviewText, githubToken);
+
+      console.log('AI Review posted successfully!');
+      await db.collection('webhook_logs').add({ repoFullName, prNumber, status: 'success', timestamp: new Date() });
+
+    } catch (bgError) {
+      console.error("Background Processing Error:", bgError);
+      await db.collection('webhook_logs').add({ 
+        repoFullName, 
+        prNumber, 
+        status: 'error', 
+        errorMessage: bgError.message || bgError.toString(),
+        stack: bgError.stack || '',
+        timestamp: new Date() 
+      });
     }
-
-    console.log('Generating AI Review with Gemini...');
-    const aiReviewText = await generateReview(diffs);
-
-    console.log('Posting review to GitHub...');
-    await postPRComment(repoFullName, prNumber, aiReviewText, githubToken);
-
-    console.log('AI Review posted successfully!');
 
   } catch (error) {
     console.error("Webhook Error:", error);
-    // If we haven't sent a response yet, send a 500
     if (!res.headersSent) {
       res.status(500).send('Internal Server Error');
     }
