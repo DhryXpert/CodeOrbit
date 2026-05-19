@@ -176,11 +176,11 @@
   border-bottom: 1px solid var(--glass-border);
 }
 
-.auth-divider::not(:empty)::before {
+.auth-divider:not(:empty)::before {
   margin-right: .5em;
 }
 
-.auth-divider::not(:empty)::after {
+.auth-divider:not(:empty)::after {
   margin-left: .5em;
 }
 
