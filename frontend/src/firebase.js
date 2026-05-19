@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GithubAuthProvider } from "firebase/auth";
+import { getAuth, GithubAuthProvider, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -17,6 +17,7 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Auth & GitHub Provider
 export const auth = getAuth(app);
 export const githubProvider = new GithubAuthProvider();
+export const googleProvider = new GoogleAuthProvider();
 
 // Request additional OAuth scopes for GitHub API (repo access)
 githubProvider.addScope('repo');

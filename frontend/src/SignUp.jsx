@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithEmailAndPassword, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, GithubAuthProvider } from 'firebase/auth';
 import { auth, githubProvider, googleProvider } from './firebase';
 import { useNavigate, Link } from 'react-router-dom';
 import robotImg from './assets/robot.png';
@@ -8,25 +8,29 @@ import logoImg from './assets/logo.png';
 import { useTheme } from './ThemeContext';
 import './Auth.css';
 
-export default function Login() {
+export default function SignUp() {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleEmailLogin = async (e) => {
+  const handleEmailSignUp = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(auth, email, password);
+      // Optional: Update user profile with name if needed
+      // await updateProfile(auth.currentUser, { displayName: name });
+      
       // Firebase automatically handles persistence
       navigate('/dashboard');
     } catch (error) {
-      console.error("Error during login:", error.message);
-      setError(`Login failed: ${error.message}`);
+      console.error("Error during sign up:", error.message);
+      setError(`Sign up failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -37,7 +41,6 @@ export default function Login() {
     try {
       const result = await signInWithPopup(auth, provider);
       
-      // If GitHub, save token
       if (providerName === 'github') {
         const credential = GithubAuthProvider.credentialFromResult(result);
         if (credential?.accessToken) {
@@ -68,7 +71,19 @@ export default function Login() {
 
           {error && <div style={{ color: 'var(--error)', marginBottom: '16px', fontSize: '0.9rem' }}>{error}</div>}
 
-          <form className="auth-form" onSubmit={handleEmailLogin}>
+          <form className="auth-form" onSubmit={handleEmailSignUp}>
+            <div className="auth-input-group">
+              <label className="auth-input-label">Name</label>
+              <input 
+                type="text" 
+                className="auth-input" 
+                placeholder="Input your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required 
+              />
+            </div>
+
             <div className="auth-input-group">
               <label className="auth-input-label">Email</label>
               <input 
@@ -98,11 +113,10 @@ export default function Login() {
                 <input type="checkbox" className="auth-checkbox" required />
                 I agree to the terms and conditions
               </label>
-              <a href="#" className="auth-link">Forgot Password?</a>
             </div>
 
             <button type="submit" className="auth-submit-btn" disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
+              {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
           </form>
 
@@ -135,7 +149,7 @@ export default function Login() {
           </div>
 
           <div className="auth-footer">
-            Don't have an account? <Link to="/signup" className="auth-link">Sign Up</Link>
+            Already have an account? <Link to="/" className="auth-link">Login</Link>
           </div>
         </div>
       </div>
