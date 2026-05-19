@@ -114,9 +114,9 @@ export default function Dashboard() {
 
   return (
     <div className="app-container animate-fade-in">
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-        <h2 style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src={user.photoURL} alt="Profile" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid var(--accent-primary)' }} />
+      <header className="dashboard-header">
+        <h2 className="dashboard-header-user">
+          <img src={user.photoURL} alt="Profile" />
           Welcome, {user.displayName || user.email}
         </h2>
         <button onClick={handleLogout} className="btn-primary" style={{ background: 'transparent', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -124,9 +124,9 @@ export default function Dashboard() {
         </button>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div className="dashboard-grid">
         {/* Left Column: Repository Selection */}
-        <div className="glass-panel" style={{ padding: '32px' }}>
+        <div className="glass-panel dashboard-panel">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
             <Github size={24} color="var(--accent-hover)" />
             <h3>Select a Repository</h3>
@@ -186,7 +186,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right Column: Active Trackers */}
-        <div className="glass-panel" style={{ padding: '32px' }}>
+        <div className="glass-panel dashboard-panel">
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
             <Activity size={24} color="var(--success)" />
             <h3>Active Trackers</h3>
