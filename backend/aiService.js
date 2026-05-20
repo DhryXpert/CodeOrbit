@@ -19,10 +19,10 @@ ${diffs}
 Your mission:
 
 - Review the proposed code changes file by file and by significant modification.
-- Generate inline comments on the relevant lines of code.
+- Provide your review as a clear markdown list of comments. DO NOT output a git diff or patch format.
+- Focus on potential bugs, formatting, or logic issues.
 - Ignore files without patches.
-- Do not repeat the code snippet or the filename.
-- Write the comments directly, without introducing the context.
+- State the file name and the issue clearly.
 `;
 
   const result = await model.generateContent(prompt);
