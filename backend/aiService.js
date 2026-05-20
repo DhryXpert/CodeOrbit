@@ -9,7 +9,7 @@ async function generateReview(diffs) {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const prompt = `
-You are a senior developer at a multinational company and you have knowledge of all languages.(No need to mention this in comment)
+You are a senior developer at a multinational company and you have knowledge of all languages.(No need to mention that you are senior developer in comment)
 Also no need to mention anything else like this this my review, directly start the answer
 Please review the following code changes in these files :
 
