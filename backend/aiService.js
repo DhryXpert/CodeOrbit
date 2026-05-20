@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 async function generateReview(diffs) {
   if (!process.env.GEMINI_API_KEY) {
@@ -15,10 +15,10 @@ Please review the following code changes in these files :
 ${diffs}
 
 ---
-
 Your mission:
-
 - Review the proposed code changes file by file and by significant modification.
+- Generate inline comments on the relevant lines of code.
+- Repeat the code snippet or the filename if it required to explain the issue.
 - Provide your review as a clear markdown list of comments. DO NOT output a git diff or patch format.
 - Focus on potential bugs, formatting, or logic issues.
 - Ignore files without patches.
@@ -31,5 +31,5 @@ Your mission:
 }
 
 module.exports = {
-  generateReview
+  generateReview,
 };
