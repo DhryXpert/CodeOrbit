@@ -30,10 +30,11 @@ export default function Dashboard() {
     if (hasGithubToken) {
       fetchRepos();
     }
-    fetchActiveTrackers(profile.uid);
 
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      if (!currentUser) {
+      if (currentUser) {
+        fetchActiveTrackers(currentUser.uid);
+      } else {
         console.log("Firebase auth state is empty on dashboard, but we are logged in locally.");
       }
     });

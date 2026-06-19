@@ -91,7 +91,7 @@ code here
 
 If there are no meaningful issues:
 return ONLY:
-LGTM
+There is no  meaningful issues 
 `;
 
   const result = await model.generateContent(prompt);
