@@ -32,14 +32,35 @@ With CodeOrbit, developers can authenticate, link their GitHub accounts, choose 
 *   🤖 **AI-Driven Code Reviews**: Leverages Google Gemini 2.5 Flash to inspect PR code patches, identify bugs, suggest optimizations, and ensure coding best practices.
 *   ⚡ **Automated Webhook Management**: Programmatically configures webhook subscriptions (`pull_request` events) for GitHub repositories using personal OAuth/Access tokens.
 *   🕒 **On-Demand Tracking Duration**: Choose how long to track a repository (from 1 to 30 days). Expired sessions automatically stop webhook actions.
-*   🛡️ **Secure Session Storage**: Uses Firebase Firestore to keep track of active sessions, securely store tokens, and record webhook execution logs.
-*   🔐 **Firebase Authentication**: Seamless signup and login flow supporting Email/Password and OAuth Social sign-ins (Google, GitHub).
-*   🎨 **Premium Aesthetic UI**: Built with a gorgeous glassmorphic theme, responsive dashboard grid layout, CSS micro-animations, and dynamic light/dark mode settings.
+*   🛡️ **Secure Session Storage**: Uses Firebase Firestore via the backend Firebase Admin SDK to keep track of active sessions and securely store tokens.
+*   🔐 **Secure Authentication**: Backend-mediated Email/Password authentication with custom JWT token storage and optional Firebase client state synchronization.
+*   🎨 **Clean & Responsive UI**: Built with a clean, high-utility UI optimized for both desktop and mobile viewports, featuring dark/light mode toggle support.
 
 ---
 
 ## 📐 System Architecture
 
+### 1. Repository Tracking & Webhook Setup Flow
+```mermaid
+sequenceDiagram
+    actor User as User / Developer
+    participant Frontend as CodeOrbit Client (React)
+    participant Backend as CodeOrbit Server (Express)
+    participant DB as Firebase Firestore
+    participant GitHub as GitHub API
+
+    User->>Frontend: Select Repo & Click "Start Tracking"
+    Frontend->>Backend: POST /api/webhooks/setup (JWT Token, GitHub Token, Repo Info)
+    Note over Backend: Verify JWT & Validate Request
+    Backend->>GitHub: POST /repos/{owner}/{repo}/hooks (Register Webhook URL)
+    GitHub-->>Backend: Webhook Created (or already exists)
+    Backend->>DB: Add Active Session to tracking_sessions collection
+    DB-->>Backend: Document Saved
+    Backend-->>Frontend: Success Response
+    Frontend->>User: Update UI (Move repo to Active Trackers sidebar)
+```
+
+### 2. Pull Request Code Review Pipeline
 ```mermaid
 sequenceDiagram
     actor Developer as Developer
@@ -58,7 +79,6 @@ sequenceDiagram
     Backend->>Gemini: Generate Review (Code Patches)
     Gemini-->>Backend: Return AI Review Feedback
     Backend->>GitHub: Post Review Comment to PR
-    Backend->>DB: Log Webhook Transaction Details
 ```
 
 ---
@@ -67,16 +87,17 @@ sequenceDiagram
 
 ### Frontend
 *   **Vite + React 19**
-*   **Firebase SDK** (Authentication & Firestore connection)
+*   **Firebase Client SDK** (Used only for authentication custom token synchronization)
 *   **Lucide React** (Vector Icons)
-*   **React Router DOM** (Navigation)
-*   **Custom Vanilla CSS** (Responsive Glassmorphism design system)
+*   **React Router DOM** (Navigation and Routing)
+*   **Custom Vanilla CSS** (Responsive UI with dark/light theme switching)
 
 ### Backend
 *   **Node.js & Express**
-*   **Firebase Admin SDK**
+*   **Firebase Admin SDK** (Used for Firestore and user registration sync)
 *   **Google Generative AI SDK** (`@google/generative-ai`)
-*   **GitHub REST API** (Diff extraction and comment posting)
+*   **GitHub REST API** (Diff retrieval and PR comment submissions)
+*   **JSON Web Token** (`jsonwebtoken` for secure backend session handling)
 
 ---
 
@@ -96,19 +117,27 @@ Follow these steps to run CodeOrbit locally on your machine.
 ```
 CodeOrbit/
 ├── backend/            # Express.js Server
-│   ├── aiService.js     # Gemini AI API wrapper
-│   ├── githubService.js # GitHub API calls for diffs/comments
-│   ├── firebaseAdmin.js # Firebase Admin initialization
-│   ├── index.js         # API Routes & Webhook controller
-│   └── package.json
+│   ├── config/
+│   │   └── firebaseAdmin.js # Firebase Admin initialization
+│   ├── routes/
+│   │   ├── auth.js     # JWT authentication, signup & login routes
+│   │   └── webhooks.js # Webhook programmatic setup, stopping, and listener
+│   ├── services/
+│   │   ├── aiService.js     # Google Gemini API integration wrapper
+│   │   └── githubService.js # Github fetch diffs / post comments service
+│   ├── index.js         # API Server entrypoint & routing configurations
+│   ├── package.json
+│   └── .env
 └── frontend/           # Vite React App
     ├── src/
-    │   ├── assets/      # Image assets (Logo, Robots)
-    │   ├── Dashboard.jsx# Active tracking & repo configuration UI
-    │   ├── Login.jsx    # Authentication Login page
-    │   ├── SignUp.jsx   # Authentication Signup page
-    │   ├── main.jsx     # App mounting entrypoint
-    │   └── index.css    # Theme variables and layout styles
+    │   ├── assets/      # Image assets (Logo, Robot illustrations)
+    │   ├── components/  # Shared components (ThemeToggle.jsx)
+    │   ├── config/      # Firebase Client initialization (firebase.js)
+    │   ├── context/     # Global state context providers (ThemeContext.jsx)
+    │   ├── pages/       # Route-based page layouts (Dashboard.jsx, Login.jsx, SignUp.jsx)
+    │   ├── styles/      # Application stylesheets (App.css, Auth.css, Dashboard.css, index.css)
+    │   ├── App.jsx      # Main application router structure
+    │   └── main.jsx     # Web application mounting point
     └── package.json
 ```
 
@@ -180,11 +209,11 @@ npm run dev
 
 ## 💡 How it Works Under the Hood
 
-1.  **Authorization**: Users sign in via Firebase OAuth. When signing in using GitHub, CodeOrbit captures the GitHub API Access Token and saves it to a `tracking_sessions` document in Firestore.
-2.  **Tracking Setup**: The user selects a repository from their GitHub list, inputs the tracking duration, and starts tracking.
-3.  **Webhook Auto-Setup**: The frontend triggers the backend API endpoint `/api/webhooks/setup`. The backend calls the GitHub API to register a webhook pointing to the backend's public payload URL (e.g., Render host).
-4.  **Diff Generation**: When a developer opens a Pull Request on a tracked repository, GitHub triggers a webhook event.
-5.  **Review Processing**: The CodeOrbit backend receives the event, verifies that there is an active tracking session in Firestore, fetches the code diffs for modified files from GitHub, feeds them to Gemini, and posts the resulting code critique directly back to the GitHub PR.
+1.  **Authorization**: Users register and log in via email and password. The request hits the Express backend, which hashes/validates the credentials using Firebase Firestore, returns a secure JWT access token to the client, and signs in client-side Firebase Auth using a custom token to keep SDK states synchronized.
+2.  **GitHub Connection**: In the dashboard, the user authorizes CodeOrbit via a Firebase OAuth GitHub popup. The resulting Access Token is saved in the client's local storage to dynamically pull repository listings.
+3.  **Tracking Setup**: The user selects a repository from their GitHub repo grid, configures tracking duration (e.g. 7 days), and starts tracking.
+4.  **Webhook Registration**: The frontend initiates a JWT-authorized POST request to the backend `/api/webhooks/setup`. The backend calls the GitHub API to register a webhook listener pointing to the backend's payload URL and creates an active session entry in the `tracking_sessions` Firestore collection.
+5.  **Review Processing**: When a PR is opened, updated, or reopened, GitHub transmits a payload to `/api/webhooks/github`. The backend validates the active tracking record in Firestore, pulls PR patch diffs, queries Google Gemini 2.5 Flash for review suggestions, and posts the resulting code critique directly onto the PR.
 
 ---
 
