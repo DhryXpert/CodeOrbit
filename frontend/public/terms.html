@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms & Conditions - CodeOrbit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #121212;
+      --bg-secondary: #1e1e1e;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+      --accent-primary: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-gradient: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      --error: #ef4444;
+      --error-soft: rgba(239, 68, 68, 0.12);
+      
+      --glass-bg: rgba(255, 255, 255, 0.02);
+      --glass-border: rgba(255, 255, 255, 0.05);
+      --glass-blur: blur(12px);
+      
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    :root[data-theme='light'] {
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent-primary: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      
+      --glass-bg: rgba(0, 0, 0, 0.02);
+      --glass-border: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.05), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(96, 165, 250, 0.05), transparent 25%);
+      background-attachment: fixed;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    html[data-theme='light'] body {
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.06), transparent 25%),
+        radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.06), transparent 25%);
+    }
+
+    .hero-bg-diagonal {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100%;
+      height: 440px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(96, 165, 250, 0.02) 100%);
+      clip-path: polygon(0 0, 100% 0, 100% 70%, 0 100%);
+      z-index: -1;
+    }
+
+    html[data-theme='light'] .hero-bg-diagonal {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.07) 0%, rgba(59, 130, 246, 0.01) 100%);
+    }
+
+    /* Header styling */
+    .header {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .header-logo {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .header-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .header-nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: color var(--transition-fast);
+    }
+
+    .header-nav-link:hover {
+      color: var(--accent-primary);
+    }
+
+    .btn-cta {
+      background: var(--accent-gradient);
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all var(--transition-fast);
+      box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.25);
+    }
+
+    .btn-cta:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+    }
+
+    /* Hero section styling */
+    .hero-section {
+      width: 100%;
+      max-width: 1200px;
+      margin: 40px auto 20px;
+      padding: 0 20px;
+    }
+
+    .hero-title {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .date-badge {
+      display: inline-block;
+      background-color: var(--error-soft);
+      color: var(--error);
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    /* Main layout and columns */
+    .main-layout {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 20px 80px;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 48px;
+    }
+
+    @media (max-width: 960px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+    }
+
+    .content-area {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 44px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+    }
+
+    @media (max-width: 600px) {
+      .content-area {
+        padding: 28px 20px;
+      }
+    }
+
+    .intro-text {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .content-section {
+      margin-bottom: 44px;
+      scroll-margin-top: 40px;
+    }
+
+    .content-section h2 {
+      font-size: 1.4rem;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--glass-border);
+      padding-bottom: 8px;
+    }
+
+    .content-subsection {
+      margin-top: 24px;
+      margin-left: 8px;
+      scroll-margin-top: 40px;
+    }
+
+    .content-subsection h3 {
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .content-section p, .content-subsection p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .content-subsection ul {
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+
+    .content-subsection li {
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+
+    /* Sidebar Table of Contents */
+    .sidebar {
+      position: relative;
+    }
+
+    .toc-card {
+      position: sticky;
+      top: 40px;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+    }
+
+    .toc-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toc-item {
+      font-size: 0.88rem;
+    }
+
+    .toc-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color var(--transition-fast), border-color var(--transition-fast), padding-left var(--transition-fast);
+      display: block;
+      border-left: 2px solid transparent;
+      padding-left: 8px;
+    }
+
+    .toc-link:hover {
+      color: var(--accent-primary);
+      border-left-color: var(--glass-border);
+    }
+
+    .toc-link.active {
+      color: var(--accent-primary);
+      font-weight: 600;
+      border-left-color: var(--accent-primary);
+      padding-left: 8px;
+    }
+
+    .toc-sublist {
+      list-style: none;
+      padding-left: 12px;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toc-subitem {
+      font-size: 0.82rem;
+    }
+
+    /* Newsletter section */
+    .newsletter-section {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto 80px;
+      padding: 0 20px;
+    }
+
+    .newsletter-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 56px 40px;
+      text-align: center;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    @media (max-width: 600px) {
+      .newsletter-card {
+        padding: 40px 20px;
+      }
+    }
+
+    .newsletter-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+    }
+
+    .newsletter-subtitle {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      max-width: 520px;
+      line-height: 1.6;
+    }
+
+    .newsletter-form {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    @media (max-width: 480px) {
+      .newsletter-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .newsletter-btn {
+        width: 100% !important;
+        height: 48px !important;
+      }
+    }
+
+    .newsletter-input {
+      flex: 1;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-secondary);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color var(--transition-fast);
+    }
+
+    .newsletter-input:focus {
+      border-color: var(--accent-primary);
+    }
+
+    .newsletter-btn {
+      background: var(--accent-gradient);
+      border: none;
+      color: white;
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.25);
+    }
+
+    .newsletter-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+    }
+
+    .newsletter-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+    }
+
+    /* Footer styling */
+    .footer {
+      width: 100%;
+      border-top: 1px solid var(--glass-border);
+      background-color: rgba(0, 0, 0, 0.2);
+      padding: 70px 20px 30px;
+    }
+
+    html[data-theme='light'] .footer {
+      background-color: rgba(0, 0, 0, 0.015);
+    }
+
+    .footer-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+
+    @media (max-width: 840px) {
+      .footer-container {
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .footer-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .footer-logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .footer-logo {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .footer-logo-text {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .footer-brand-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      max-width: 280px;
+    }
+
+    .footer-col h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer-link a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color var(--transition-fast);
+    }
+
+    .footer-link a:hover {
+      color: var(--accent-primary);
+    }
+
+    .footer-contact-item {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      border-top: 1px solid var(--glass-border);
+      padding-top: 30px;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="hero-bg-diagonal"></div>
+
+  <header class="header">
+    <a href="/" class="header-brand">
+      <img src="/logo.webp" alt="CodeOrbit Logo" class="header-logo">
+      <span class="header-title">CodeOrbit</span>
+    </a>
+    <nav class="header-nav">
+      <a href="/" class="header-nav-link">Home</a>
+      <a href="/#features" class="header-nav-link">Features</a>
+      <a href="#" class="header-nav-link">Blog</a>
+      <a href="#" class="header-nav-link">Docs</a>
+      <a href="#" class="header-nav-link">Support</a>
+    </nav>
+    <a href="/" class="btn-cta">Dashboard</a>
+  </header>
+
+  <div class="hero-section">
+    <h1 class="hero-title">Terms & Conditions</h1>
+    <div class="date-badge">Last update: June 20, 2026</div>
+  </div>
+
+  <main class="main-layout">
+    <div class="content-area">
+      <p class="intro-text">
+        Welcome to CodeOrbit. Please read these Terms and Conditions carefully before using our software-as-a-service platform. These Terms govern your access to and use of CodeOrbit’s tools, pipelines, integrations, and workspace services.
+      </p>
+
+      <section id="section-1" class="content-section scroll-target">
+        <h2>1. What are Terms and Conditions</h2>
+        <p>
+          These Terms and Conditions constitute a legally binding agreement made between you, whether personally or on behalf of an entity, and CodeOrbit, concerning your access to and use of our ecosystem.
+        </p>
+        <p>
+          By using our platform, you acknowledge that you have read, understood, and agreed to be bound by all of these Terms. If you do not agree with all of these terms, then you are expressly prohibited from using the platform and must discontinue use immediately.
+        </p>
+
+        <div id="section-1-a" class="content-subsection scroll-target">
+          <h3>A. Personal Data that we collect about you</h3>
+          <p>
+            We collect personal data you provide directly to us, such as when you create an account, configure integrations, make purchases, or contact customer support. This may include your name, email address, password, GitHub usernames, and profile metadata.
+          </p>
+          <p>
+            All storage and processing of user personal data is carried out securely using industry-standard protocols, guaranteeing the protection of your credentials.
+          </p>
+        </div>
+
+        <div id="section-1-b" class="content-subsection scroll-target">
+          <h3>B. Information that we collect automatically on our sites</h3>
+          <p>
+            When you access or use CodeOrbit, we automatically collect certain information regarding your requests and interaction logs. This includes device information, access timestamps, telemetry data related to your builds, pipeline durations, and IP addresses.
+          </p>
+          <p>
+            We use these analytics and tracking statistics to ensure site health, scale compute nodes effectively, prevent abuse, and deliver custom platform dashboards.
+          </p>
+        </div>
+      </section>
+
+      <section id="section-2" class="content-section scroll-target">
+        <h2>2. Privacy & Copyright Protection</h2>
+        <p>
+          Your privacy is of the utmost importance to us. Our Privacy Policy describes how we handle the information you provide to us when you use our Services. You understand that through your use of the Services, you consent to the collection and use of this information as set forth in the Privacy Policy.
+        </p>
+        <p>
+          We protect your proprietary algorithms, codebases, commits, and workflow architecture. We respect intellectual property rights and expect our users to do the same. We reserve the right to delete or disable content alleged to be infringing and to terminate repeat infringers.
+        </p>
+      </section>
+
+      <section id="section-3" class="content-section scroll-target">
+        <h2>3. Your Content in Our Services</h2>
+        <p>
+          Many of our Services allow you to upload, submit, store, send, or receive content. You retain ownership of any intellectual property rights that you hold in that content. In short, what belongs to you stays yours.
+        </p>
+        <p>
+          When you upload, submit, store, send, or receive content to or through our Services, you give CodeOrbit a worldwide license to host, store, reproduce, modify, and run such content solely for the purpose of operating, promoting, and improving our Services. This license is strictly limited to supporting automated pipeline operations, hosting builds, and indexing logs to facilitate your direct interactions.
+        </p>
+      </section>
+
+      <section id="section-4" class="content-section scroll-target">
+        <h2>4. Limitation of Liability</h2>
+        <p>
+          To the maximum extent permitted by applicable law, CodeOrbit, its developers, and affiliates shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses, resulting from:
+        </p>
+        <ul>
+          <li>Your access to or use of or inability to access or use the Services.</li>
+          <li>Any conduct or content of any third party on the Services, including without limitation, any defamatory, offensive, or illegal conduct of other users or third parties.</li>
+          <li>Any content obtained from the Services.</li>
+          <li>Unauthorized access, use, or alteration of your transmissions or content.</li>
+        </ul>
+      </section>
+    </div>
+
+    <aside class="sidebar">
+      <div class="toc-card">
+        <h3 class="toc-title">Table of Contents</h3>
+        <ul class="toc-list">
+          <li class="toc-item">
+            <a href="#section-1" class="toc-link">1. What are Terms and Conditions</a>
+            <ul class="toc-sublist">
+              <li class="toc-subitem">
+                <a href="#section-1-a" class="toc-link">A. Personal Data that we collect about you.</a>
+              </li>
+              <li class="toc-subitem">
+                <a href="#section-1-b" class="toc-link">B. Information that we collect automatically on our sites.</a>
+              </li>
+            </ul>
+          </li>
+          <li class="toc-item">
+            <a href="#section-2" class="toc-link">2. Privacy & copyright protection</a>
+          </li>
+          <li class="toc-item">
+            <a href="#section-3" class="toc-link">3. Your content in our services</a>
+          </li>
+          <li class="toc-item">
+            <a href="#section-4" class="toc-link">4. Limitation of liability</a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+  </main>
+
+  <section class="newsletter-section">
+    <div class="newsletter-card">
+      <h2 class="newsletter-title">Stay in the know</h2>
+      <p class="newsletter-subtitle">
+        Fusce placerat pretium mauris, vel sollicitudin elit lacinia vitae. Quisque sit amet nisi erat.
+      </p>
+      <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+        <input type="email" class="newsletter-input" placeholder="Enter your email address" required>
+        <button type="submit" class="newsletter-btn" aria-label="Subscribe">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <a href="/" class="footer-logo-wrapper">
+          <img src="/logo.webp" alt="CodeOrbit Logo" class="footer-logo">
+          <span class="footer-logo-text">CodeOrbit</span>
+        </a>
+        <p class="footer-brand-desc">
+          Simplifying the way software developers deploy, monitor, and scale code ecosystems globally.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h3>Helpful Links</h3>
+        <ul class="footer-links">
+          <li class="footer-link"><a href="/">About Us</a></li>
+          <li class="footer-link"><a href="/">Features</a></li>
+          <li class="footer-link"><a href="/">FAQ's</a></li>
+          <li class="footer-link"><a href="/">Blog</a></li>
+          <li class="footer-link"><a href="/">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3>Services</h3>
+        <ul class="footer-links">
+          <li class="footer-link"><a href="/">Worldwide</a></li>
+          <li class="footer-link"><a href="/">Scalable</a></li>
+          <li class="footer-link"><a href="/">Modular</a></li>
+          <li class="footer-link"><a href="/">Connectivity</a></li>
+          <li class="footer-link"><a href="/">Corporate</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h3>Contact Us</h3>
+        <p class="footer-contact-item">455 West Orchard Street</p>
+        <p class="footer-contact-item">Kings Mountain, NC 28086</p>
+        <p class="footer-contact-item">Phone: (272) 211-7370</p>
+        <p class="footer-contact-item">Email: support@codeorbit.com</p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      &copy; 2026 CodeOrbit. All Rights Reserved.
+    </div>
+  </footer>
+
+  <script>
+    // Match theme dynamically with the main application theme state
+    try {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    } catch (e) {
+      console.error('Failed to load theme:', e);
+    }
+
+    // Scrollspy active highlight functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const targets = document.querySelectorAll('.scroll-target');
+      const tocLinks = document.querySelectorAll('.toc-link');
+
+      // Adjust options for intersection detection bounds
+      const observerOptions = {
+        root: null,
+        rootMargin: '-10% 0px -75% 0px',
+        threshold: 0
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.getAttribute('id');
+            tocLinks.forEach(link => {
+              const href = link.getAttribute('href');
+              if (href === `#${id}`) {
+                link.classList.add('active');
+              } else {
+                link.classList.remove('active');
+              }
+            });
+          }
+        });
+      }, observerOptions);
+
+      targets.forEach(target => observer.observe(target));
+    });
+  </script>
+</body>
+</html>

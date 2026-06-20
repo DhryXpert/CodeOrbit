@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { signInWithCustomToken } from "firebase/auth";
 import { auth } from "../config/firebase";
 import { useNavigate, Link } from "react-router-dom";
@@ -132,8 +132,8 @@ export default function SignUp() {
 
             <div className="auth-form-options">
               <label className="auth-checkbox-label">
-                <input type="checkbox" className="auth-checkbox" required />I
-                agree to the terms and conditions
+                <input type="checkbox" className="auth-checkbox" required />
+                I agree to the <a href="/terms.html" target="_blank" rel="noopener noreferrer" className="auth-link">Terms and condition</a>
               </label>
             </div>
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { signInWithCustomToken } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import { useNavigate, Link } from 'react-router-dom';
@@ -114,11 +114,7 @@ export default function Login() {
             </div>
 
             <div className="auth-form-options">
-              <label className="auth-checkbox-label">
-                <input type="checkbox" className="auth-checkbox" required />
-                I agree to the terms and conditions
-              </label>
-              <a href="#" className="auth-link">Forgot Password?</a>
+              <a href="#" className="auth-link" style={{ marginLeft: 'auto' }}>Forgot Password?</a>
             </div>
 
             <button type="submit" className="auth-submit-btn" disabled={loading}>
