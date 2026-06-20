@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { auth, db, githubProvider } from '../config/firebase';
-import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { auth, githubProvider } from '../config/firebase';
 import { linkWithPopup, GithubAuthProvider } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Activity, Clock, CheckCircle } from 'lucide-react';
+import { LogOut, Activity, Clock, CheckCircle, X } from 'lucide-react';
 import '../styles/Dashboard.css';
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const [user] = useState(() => {
+    const profileJson = localStorage.getItem('user_profile');
+    return profileJson ? JSON.parse(profileJson) : null;
+  });
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRepo, setSelectedRepo] = useState(null);
@@ -15,6 +17,51 @@ export default function Dashboard() {
   const [activeTrackers, setActiveTrackers] = useState([]);
   const [hasGithubToken, setHasGithubToken] = useState(!!localStorage.getItem('github_token'));
   const navigate = useNavigate();
+
+  async function loadActiveTrackers() {
+    try {
+      const accessToken = localStorage.getItem('access_token');
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const backendUrl = isLocalhost ? 'http://localhost:3000' : (import.meta.env.VITE_BACKEND_URL || '');
+
+      const response = await fetch(`${backendUrl}/api/webhooks/active`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setActiveTrackers(data);
+      } else {
+        console.error("Failed to fetch active trackers:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching trackers from backend:", error);
+    }
+  }
+
+  async function fetchRepos() {
+    const token = localStorage.getItem('github_token');
+    if (!token) return;
+    
+    try {
+      const response = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: 'application/vnd.github.v3+json'
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Filter out archived repos
+        setRepos(data.filter(r => !r.archived));
+      }
+    } catch (error) {
+      console.error("Error fetching repos:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
     const token = localStorage.getItem('access_token');
@@ -24,21 +71,13 @@ export default function Dashboard() {
       return;
     }
 
-    const profile = JSON.parse(profileJson);
-    setUser(profile);
-
     if (hasGithubToken) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchRepos();
     }
 
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-      if (currentUser) {
-        fetchActiveTrackers(currentUser.uid);
-      } else {
-        console.log("Firebase auth state is empty on dashboard, but we are logged in locally.");
-      }
-    });
-    return () => unsubscribe();
+    // Load active trackers immediately on mount via the backend API
+    loadActiveTrackers();
   }, [navigate, hasGithubToken]);
 
   const handleConnectGithub = async () => {
@@ -71,64 +110,27 @@ export default function Dashboard() {
     }
   };
 
-  const fetchRepos = async () => {
-    const token = localStorage.getItem('github_token');
-    if (!token) return;
-    
-    try {
-      const response = await fetch('https://api.github.com/user/repos?sort=updated&per_page=100', {
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: 'application/vnd.github.v3+json'
-        }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        // Filter out archived repos
-        setRepos(data.filter(r => !r.archived));
-      }
-    } catch (error) {
-      console.error("Error fetching repos:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const fetchActiveTrackers = async (uid) => {
-    try {
-      const q = query(collection(db, "tracking_sessions"), where("userId", "==", uid));
-      const querySnapshot = await getDocs(q);
-      const trackers = [];
-      querySnapshot.forEach((doc) => {
-        trackers.push({ id: doc.id, ...doc.data() });
-      });
-      setActiveTrackers(trackers);
-    } catch (error) {
-      console.error("Error fetching trackers:", error);
-    }
-  };
+
+
 
   const handleStartTracking = async () => {
     if (!selectedRepo) return;
+
+    // Prevent duplicate tracking
+    const isAlreadyTracking = activeTrackers.some(tracker => {
+      const endDate = new Date(tracker.endDate);
+      const isActive = tracker.isActive !== false && endDate > new Date();
+      return tracker.repoFullName.toLowerCase() === selectedRepo.full_name.toLowerCase() && isActive;
+    });
+
+    if (isAlreadyTracking) {
+      alert(`The repository "${selectedRepo.name}" is already being actively tracked!`);
+      return;
+    }
     
     try {
       const token = localStorage.getItem('github_token');
-      // Calculate end date based on duration
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + parseInt(duration));
-
-      const sessionData = {
-        userId: user.uid,
-        repoFullName: selectedRepo.full_name,
-        repoId: selectedRepo.id,
-        durationDays: parseInt(duration),
-        endDate: endDate.toISOString(),
-        createdAt: serverTimestamp(),
-        isActive: true,
-        githubToken: token
-      };
-      
-      // 1. Call our backend to setup the webhook programmatically FIRST
       const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
       const backendUrl = isLocalhost ? 'http://localhost:3000' : (import.meta.env.VITE_BACKEND_URL || '');
       const accessToken = localStorage.getItem('access_token');
@@ -139,7 +141,12 @@ export default function Dashboard() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${accessToken}`
         },
-        body: JSON.stringify({ repoFullName: selectedRepo.full_name, token })
+        body: JSON.stringify({ 
+          repoFullName: selectedRepo.full_name, 
+          token,
+          repoId: selectedRepo.id,
+          durationDays: duration
+        })
       });
 
       if (!response.ok) {
@@ -147,15 +154,44 @@ export default function Dashboard() {
         throw new Error(errorData.error || `Webhook setup failed with status: ${response.status}`);
       }
 
-      // 2. Save to Firestore only if webhook setup is successful
-      await addDoc(collection(db, 'tracking_sessions'), sessionData);
-
       alert(`Successfully started tracking ${selectedRepo.name} for ${duration} days!`);
       setSelectedRepo(null);
-      fetchActiveTrackers(user.uid);
+      loadActiveTrackers();
     } catch (error) {
       console.error("Error starting tracker:", error);
       alert(`Failed to start tracking: ${error.message}. See console.`);
+    }
+  };
+
+  const handleStopTracking = async (trackerId, repoFullName) => {
+    if (!confirm(`Are you sure you want to stop tracking ${repoFullName}?`)) {
+      return;
+    }
+
+    try {
+      const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const backendUrl = isLocalhost ? 'http://localhost:3000' : (import.meta.env.VITE_BACKEND_URL || '');
+      const accessToken = localStorage.getItem('access_token');
+
+      const response = await fetch(`${backendUrl}/api/webhooks/stop`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({ trackerId })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to stop tracking: ${response.status}`);
+      }
+
+      alert(`Stopped tracking ${repoFullName}.`);
+      loadActiveTrackers();
+    } catch (error) {
+      console.error("Error stopping tracker:", error);
+      alert(`Failed to stop tracking: ${error.message}`);
     }
   };
 
@@ -186,6 +222,17 @@ export default function Dashboard() {
   };
 
   if (!user) return <div className="app-container text-gradient dashboard-loading">Welcome to CodeOrbit! Loading dashboard...</div>;
+
+  const runningTrackers = activeTrackers.filter(tracker => {
+    const endDate = new Date(tracker.endDate);
+    return tracker.isActive !== false && endDate > new Date();
+  });
+
+  const activeTrackerRepoNames = new Set(
+    runningTrackers.map(tracker => tracker.repoFullName.toLowerCase())
+  );
+
+  const availableRepos = repos.filter(repo => !activeTrackerRepoNames.has(repo.full_name.toLowerCase()));
 
   return (
     <div className="app-container animate-fade-in">
@@ -240,8 +287,10 @@ export default function Dashboard() {
               </div>
             ) : repos.length === 0 ? (
               <p className="dashboard-no-repos">No repositories found.</p>
+            ) : availableRepos.length === 0 ? (
+              <p className="dashboard-no-repos">All repositories are currently being tracked.</p>
             ) : (
-              repos.map(repo => (
+              availableRepos.map(repo => (
                 <div 
                   key={repo.id}
                   onClick={() => setSelectedRepo(repo)}
@@ -289,7 +338,7 @@ export default function Dashboard() {
             <h3>Active Trackers</h3>
           </div>
           
-          {activeTrackers.length === 0 ? (
+          {runningTrackers.length === 0 ? (
             <div className="dashboard-empty-state">
               <CheckCircle size={48} opacity={0.2} className="dashboard-empty-icon" />
               <p>You don't have any active repository trackers.</p>
@@ -297,21 +346,26 @@ export default function Dashboard() {
             </div>
           ) : (
             <div className="dashboard-trackers-list">
-              {activeTrackers.map(tracker => {
+              {runningTrackers.map(tracker => {
                 const endDate = new Date(tracker.endDate);
-                const isActive = endDate > new Date();
                 
                 return (
                   <div key={tracker.id} className="dashboard-tracker-card">
                     <div className="dashboard-tracker-header">
                       <strong className="dashboard-tracker-name">{tracker.repoFullName}</strong>
-                      {isActive ? (
+                      <div className="dashboard-tracker-actions">
                         <span className="status-badge active">
                           <span className="status-indicator"></span> Active
                         </span>
-                      ) : (
-                        <span className="status-badge expired">Expired</span>
-                      )}
+                        <button 
+                          onClick={() => handleStopTracking(tracker.id, tracker.repoFullName)}
+                          className="dashboard-stop-tracking-btn"
+                          title="Stop Tracking"
+                          aria-label="Stop Tracking"
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
                     </div>
                     <p className="dashboard-tracker-meta">
                       Reviewing all PRs until {endDate.toLocaleDateString()}

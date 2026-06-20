@@ -1,6 +1,3 @@
-/**
- * Fetch the changed files and their diffs from a GitHub Pull Request
- */
 async function getPRDiffs(repoFullName, prNumber, token) {
   const url = `https://api.github.com/repos/${repoFullName}/pulls/${prNumber}/files`;
   

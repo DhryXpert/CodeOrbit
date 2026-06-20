@@ -20,10 +20,17 @@
 }
 
 .dashboard-repo-list {
-  max-height: 400px;
+  max-height: calc(100vh - 280px);
+  min-height: 350px;
   overflow-y: auto;
   padding-right: 8px;
   margin-bottom: 24px;
+}
+@media (max-width: 768px) {
+  .dashboard-repo-list {
+    max-height: 300px;
+    min-height: 200px;
+  }
 }
 
 .dashboard-empty-state {
@@ -79,7 +86,7 @@
 
 .dashboard-config-box {
   padding: 20px;
-  background: var(--glass-bg);
+  background: var(--bg-primary);
   border-radius: var(--radius-md);
   border: 1px solid var(--glass-border);
 }
@@ -139,7 +146,7 @@
 
 .dashboard-tracker-card {
   padding: 16px;
-  background: var(--glass-bg);
+  background: var(--bg-primary);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
 }
@@ -147,12 +154,21 @@
 .dashboard-tracker-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 12px;
+  gap: 16px;
 }
 
 .dashboard-tracker-name {
   font-size: 1.1rem;
+  word-break: break-all;
+}
+
+.dashboard-tracker-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .status-badge {
@@ -171,7 +187,7 @@
 
 .status-badge.expired {
   color: var(--text-secondary);
-  background: var(--glass-bg);
+  background: var(--bg-primary);
   border: 1px solid var(--glass-border);
 }
 
@@ -179,4 +195,23 @@
   font-size: 0.9rem;
   color: var(--text-secondary);
   margin: 0;
+}
+
+.dashboard-stop-tracking-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.dashboard-stop-tracking-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+  transform: scale(1.1);
 }

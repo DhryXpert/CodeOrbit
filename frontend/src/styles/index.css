@@ -46,16 +46,6 @@ body {
   min-height: 100vh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  background-image: 
-    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.06), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(96, 165, 250, 0.06), transparent 25%);
-  background-attachment: fixed;
-}
-
-html[data-theme='light'] body {
-  background-image: 
-    radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.08), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.08), transparent 25%);
 }
 
 /* Typography */
@@ -73,12 +63,10 @@ h1, h2, h3, h4 {
 
 /* Glass Panels */
 .glass-panel {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--bg-secondary);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Buttons */
@@ -125,9 +113,15 @@ h1, h2, h3, h4 {
 
 /* Layout */
 .app-container {
-  max-width: 1200px;
+  width: 100%;
+  max-width: 98%;
   margin: 0 auto;
-  padding: 40px 24px;
+  padding: 24px 16px;
+}
+@media (min-width: 1200px) {
+  .app-container {
+    padding: 32px 48px;
+  }
 }
 
 /* Animations */
@@ -225,7 +219,7 @@ h1, h2, h3, h4 {
   position: absolute;
   top: 24px;
   right: 24px;
-  background: var(--glass-bg);
+  background: var(--bg-secondary);
   border: 1px solid var(--glass-border);
   border-radius: 50%;
   width: 44px;
@@ -236,8 +230,6 @@ h1, h2, h3, h4 {
   cursor: pointer;
   color: var(--text-primary);
   z-index: 100;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   transition: all var(--transition-fast);
 }
 
