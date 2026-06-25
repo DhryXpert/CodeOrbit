@@ -198,18 +198,6 @@ npm install
 
 ---
 
-### 🔧 Database Cleanup Utility Script
-
-If you want to clear your development database to test the workflow from a clean state, you can run the following script from the root workspace directory:
-
-```bash
-node backend/clean_db.js
-```
-
-This script connects to Firestore using your backend env credentials and safely deletes all documents in the `users`, `user_github_tokens`, and `tracking_sessions` collections.
-
----
-
 ### 🏃 Running Locally
 
 To run CodeOrbit, you'll need to spin up both the backend server and the frontend client.
