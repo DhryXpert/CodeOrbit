@@ -21,10 +21,12 @@ app.use('/api', limiter);
 
 const authRouter = require('./routes/auth');
 const webhooksRouter = require('./routes/webhooks');
+const githubRouter = require('./routes/github');
 
 // Mount routes
 app.use('/api/auth', authRouter);
 app.use('/api/webhooks', webhooksRouter);
+app.use('/api/github', githubRouter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'AI PR Reviewer Backend is running!' });

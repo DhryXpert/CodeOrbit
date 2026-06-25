@@ -1,31 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const { admin, db } = require('../config/firebaseAdmin');
 const { getPRDiffs, postPRComment } = require('../services/githubService');
 const { generateReview } = require('../services/aiService');
+const { encrypt, decrypt } = require('../services/cryptoService');
+const authenticateToken = require('../middleware/auth');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'codeorbit-secret-key-123456';
-
-// Middleware to check if user has sent a valid JWT access token
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) return res.status(401).json({ error: 'Access token is required!' });
-
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Your login session is invalid or expired!' });
-    req.user = user;
-    next();
-  });
-};
-
-// --- GITHUB WEBHOOK RECEIVER ENDPOINT ---
+// --- GITHUB WEBHOOK RECEIVER ---
 router.post('/github', async (req, res) => {
   try {
-    const event = req.headers['x-github-event'];
-    if (event !== 'pull_request') return res.status(200).send('Ignored: Not a PR event');
+    if (req.headers['x-github-event'] !== 'pull_request') {
+      return res.status(200).send('Ignored: Not a PR event');
+    }
 
     const { action, pull_request, repository } = req.body;
     if (!['opened', 'synchronize', 'reopened'].includes(action)) {
@@ -34,9 +20,7 @@ router.post('/github', async (req, res) => {
 
     const repoFullName = repository.full_name;
     const prNumber = pull_request.number;
-    console.log(`Received PR event for ${repoFullName} #${prNumber}`);
 
-    // Check if this repository is actively tracked in Firestore
     const snapshot = await db.collection('tracking_sessions')
       .where('repoFullName', '==', repoFullName)
       .where('isActive', '==', true)
@@ -44,59 +28,55 @@ router.post('/github', async (req, res) => {
 
     if (snapshot.empty) return res.status(200).send('Ignored: Repo not tracked');
 
-    // Grab the first valid session that is not expired
     let validSession = null;
+    let validSessionId = null;
     snapshot.forEach(doc => {
       const data = doc.data();
       if (new Date(data.endDate) > new Date()) {
         validSession = data;
+        validSessionId = doc.id;
       }
     });
 
-    if (!validSession) return res.status(200).send('Ignored: Tracking expired');
+    if (!validSession?.githubToken) return res.status(500).send('Missing GitHub Token');
 
-    const githubToken = validSession.githubToken;
-    if (!githubToken) return res.status(500).send('Missing GitHub Token in DB');
-
+    const githubToken = decrypt(validSession.githubToken);
     res.status(202).send('Accepted for processing');
 
-    // Run AI PR review processing in the background
-    try {
-      console.log('Fetching diffs from GitHub...');
+    // Process in background
+    (async () => {
       const diffs = await getPRDiffs(repoFullName, prNumber, githubToken);
-      if (diffs.includes('Pas de patch disponible') && diffs.split('---').length <= 2) {
-        console.log('No code changes found.');
-        return;
-      }
+      if (diffs.includes('Pas de patch disponible') && diffs.split('---').length <= 2) return;
 
-      console.log('Generating AI review comments using Gemini...');
       const aiReviewText = await generateReview(diffs);
-
-      console.log('Posting review comment to GitHub...');
       await postPRComment(repoFullName, prNumber, aiReviewText, githubToken);
-      console.log('AI Review posted successfully!');
-    } catch (bgError) {
-      console.error("Error processing webhook in background:", bgError);
-    }
+
+      if (validSessionId) {
+        await db.collection('tracking_sessions').doc(validSessionId).update({
+          prsReviewed: admin.firestore.FieldValue.increment(1)
+        });
+      }
+    })().catch(err => console.error("Webhook processing error:", err));
+
   } catch (error) {
     console.error("Webhook route error:", error);
     if (!res.headersSent) res.status(500).send('Internal Server Error');
   }
 });
 
-// --- PROGRAMMATICALLY SETUP GITHUB WEBHOOK ---
+// --- SETUP WEBHOOK ---
 router.post('/setup', authenticateToken, async (req, res) => {
-  const { repoFullName, token, repoId, durationDays } = req.body;
-  if (!repoFullName || !token) return res.status(400).json({ error: 'Missing repository name or token!' });
+  const { repoFullName, repoId, durationDays } = req.body;
+  if (!repoFullName) return res.status(400).json({ error: 'Missing repository name!' });
 
   try {
-    const url = `https://api.github.com/repos/${repoFullName}/hooks`;
+    const tokenDoc = await db.collection('user_github_tokens').doc(req.user.userId).get();
+    if (!tokenDoc.exists) return res.status(400).json({ error: 'GitHub not linked' });
+
+    const token = decrypt(tokenDoc.data().encryptedToken);
     const webhookBase = process.env.WEBHOOK_BASE_URL || `${req.protocol}://${req.get('host')}`;
-    const backendWebhookUrl = `${webhookBase}/api/webhooks/github`;
 
-    console.log(`Setting up webhook for ${repoFullName} pointing to ${backendWebhookUrl}`);
-
-    const response = await fetch(url, {
+    const response = await fetch(`https://api.github.com/repos/${repoFullName}/hooks`, {
       method: 'POST',
       headers: {
         Authorization: `token ${token}`,
@@ -107,21 +87,20 @@ router.post('/setup', authenticateToken, async (req, res) => {
         name: 'web',
         active: true,
         events: ['pull_request'],
-        config: { url: backendWebhookUrl, content_type: 'json', insecure_ssl: '0' }
+        config: { url: `${webhookBase}/api/webhooks/github`, content_type: 'json', insecure_ssl: '0' }
       })
     });
 
     const data = await response.json();
     if (!response.ok && !(response.status === 422 && data.errors?.[0]?.message?.includes('already exists'))) {
-      throw new Error(data.message || 'GitHub API error');
+      throw new Error(data.message || 'GitHub webhook error');
     }
 
-    // Save the tracking session to Firestore
-    const endDate = new Date();
     const duration = durationDays ? parseInt(durationDays) : 7;
+    const endDate = new Date();
     endDate.setDate(endDate.getDate() + duration);
 
-    const sessionData = {
+    await db.collection('tracking_sessions').add({
       userId: req.user.userId,
       repoFullName,
       repoId: repoId ? parseInt(repoId) : null,
@@ -129,19 +108,17 @@ router.post('/setup', authenticateToken, async (req, res) => {
       endDate: endDate.toISOString(),
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       isActive: true,
-      githubToken: token
-    };
+      githubToken: encrypt(token),
+      prsReviewed: 0
+    });
 
-    await db.collection('tracking_sessions').add(sessionData);
-    console.log(`Saved active tracking session for ${repoFullName} under user ${req.user.userId}`);
-    res.status(200).json({ message: 'Webhook registered and tracking started successfully' });
+    res.json({ message: 'Webhook registered successfully' });
   } catch (error) {
-    console.error('Error setting up webhook:', error);
     res.status(500).json({ error: error.message || 'Failed to setup webhook' });
   }
 });
 
-// --- GET ACTIVE TRACKING SESSIONS FOR USER ---
+// --- GET ACTIVE TRACKERS ---
 router.get('/active', authenticateToken, async (req, res) => {
   try {
     const snapshot = await db.collection('tracking_sessions')
@@ -153,12 +130,11 @@ router.get('/active', authenticateToken, async (req, res) => {
     snapshot.forEach(doc => trackers.push({ id: doc.id, ...doc.data() }));
     res.json(trackers);
   } catch (error) {
-    console.error('Error fetching active trackers:', error);
     res.status(500).json({ error: 'Failed to fetch active trackers' });
   }
 });
 
-// --- STOP TRACKING SESSION ---
+// --- STOP TRACKER ---
 router.post('/stop', authenticateToken, async (req, res) => {
   const { trackerId } = req.body;
   if (!trackerId) return res.status(400).json({ error: 'Missing tracker ID!' });
@@ -167,7 +143,6 @@ router.post('/stop', authenticateToken, async (req, res) => {
     await db.collection('tracking_sessions').doc(trackerId).update({ isActive: false });
     res.json({ message: 'Stopped tracking successfully' });
   } catch (error) {
-    console.error('Error stopping tracker:', error);
     res.status(500).json({ error: 'Failed to stop tracking' });
   }
 });
