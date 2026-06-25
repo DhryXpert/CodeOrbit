@@ -61,35 +61,28 @@ h1, h2, h3, h4 {
   background-clip: text;
 }
 
-/* Glass Panels */
+/* Panels */
 .glass-panel {
   background: var(--bg-secondary);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: var(--radius-sm);
 }
 
 /* Buttons */
 .btn-primary {
-  background: var(--accent-gradient);
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
+  background: var(--accent-hover);
 }
 
 /* Inputs */
@@ -117,6 +110,10 @@ h1, h2, h3, h4 {
   max-width: 98%;
   margin: 0 auto;
   padding: 24px 16px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 @media (min-width: 1200px) {
   .app-container {
@@ -134,20 +131,12 @@ h1, h2, h3, h4 {
   animation: fadeIn var(--transition-smooth) forwards;
 }
 
-/* Pulse animation for active tracking */
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-
 .status-indicator {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background-color: var(--success);
   border-radius: 50%;
-  animation: pulse 2s infinite;
 }
 
 /* Dashboard Responsive Layout */
@@ -155,7 +144,8 @@ h1, h2, h3, h4 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
+  flex-shrink: 0;
 }
 
 .dashboard-header-user {
@@ -175,16 +165,23 @@ h1, h2, h3, h4 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
+  flex: 1;
+  min-height: 0;
 }
 
 .dashboard-panel {
   padding: 32px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
 }
 
 /* Phone Layout Media Query */
 @media (max-width: 768px) {
   .app-container {
     padding: 24px 16px;
+    height: 100vh;
   }
 
   .dashboard-header {
@@ -192,7 +189,7 @@ h1, h2, h3, h4 {
     align-items: center;
     text-align: center;
     gap: 20px;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
   }
 
   .dashboard-header-user {
@@ -207,6 +204,7 @@ h1, h2, h3, h4 {
 
   .dashboard-grid {
     grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
     gap: 20px;
   }
 

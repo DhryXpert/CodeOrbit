@@ -7,6 +7,7 @@ import robotLightImg from "../assets/robo_ligth.webp";
 import logoImg from "../assets/logo.webp";
 import { useTheme } from "../context/ThemeContext";
 import { Eye, EyeOff } from "lucide-react";
+import ThemeToggle from "../components/ThemeToggle";
 import "../styles/Auth.css";
 
 export default function SignUp() {
@@ -51,9 +52,9 @@ export default function SignUp() {
       }
 
       navigate("/dashboard");
-    } catch (error) {
-      console.error("Error during sign up:", error.message);
-      setError(`Sign up failed: ${error.message}`);
+    } catch (err) {
+      console.error("Error during sign up:", err.message);
+      setError(`Sign up failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -61,6 +62,7 @@ export default function SignUp() {
 
   return (
     <main className="auth-container animate-fade-in">
+      <ThemeToggle />
       <div className="auth-hero">
         <img
           src={theme === "light" ? robotLightImg : robotImg}
