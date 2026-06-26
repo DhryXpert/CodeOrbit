@@ -54,7 +54,7 @@ export default function Dashboard() {
           onClick={() => setSidebarOpen(false)}
         />
       )}
-
+<h1>Welcome Users</h1>
       <Sidebar
         user={user}
         hasGithubToken={hasGithubToken}
