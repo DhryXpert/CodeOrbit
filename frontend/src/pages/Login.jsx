@@ -45,12 +45,15 @@ export default function Login() {
       localStorage.setItem('refresh_token', data.refreshToken);
       localStorage.setItem('user_profile', JSON.stringify(data.user));
 
-      // Sign into Firebase Auth using the custom token to preserve client-side Firestore access
-      if (data.firebaseCustomToken) {
-        await signInWithCustomToken(auth, data.firebaseCustomToken);
-      }
-
+      // Navigate to dashboard immediately — don't block on Firebase Auth
       navigate('/dashboard');
+
+      // Sign into Firebase Auth in background (needed later for GitHub OAuth linking)
+      if (data.firebaseCustomToken) {
+        signInWithCustomToken(auth, data.firebaseCustomToken).catch(err =>
+          console.error('Background Firebase sign-in failed:', err)
+        );
+      }
     } catch (err) {
       console.error("Error during login:", err.message);
       setError(`Login failed: ${err.message}`);

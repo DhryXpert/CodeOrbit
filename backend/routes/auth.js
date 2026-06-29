@@ -87,9 +87,9 @@ router.post('/login', async (req, res) => {
     }
 
     const { userId, name } = userDoc;
-    const firebaseUser = await getOrCreateFirebaseUser(userId, email, name).catch(() => null);
     const accessToken = jwt.sign({ userId, email: email.toLowerCase(), name }, JWT_SECRET, { expiresIn: '1h' });
     const firebaseCustomToken = await admin.auth().createCustomToken(userId).catch(() => null);
+    const photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`;
 
     res.json({
       accessToken,
@@ -98,7 +98,7 @@ router.post('/login', async (req, res) => {
         uid: userId,
         email: email.toLowerCase(),
         displayName: name,
-        photoURL: firebaseUser?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}`
+        photoURL
       }
     });
   } catch (error) {
