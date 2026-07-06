@@ -45,13 +45,13 @@ export default function SignUp() {
       localStorage.setItem('access_token', data.accessToken);
       localStorage.setItem('refresh_token', data.refreshToken);
       localStorage.setItem('user_profile', JSON.stringify(data.user));
-
-      // Sign into Firebase Auth using the custom token to preserve client-side Firestore access
-      if (data.firebaseCustomToken) {
-        await signInWithCustomToken(auth, data.firebaseCustomToken);
-      }
-
       navigate("/dashboard");
+
+      if (data.firebaseCustomToken) {
+        signInWithCustomToken(auth, data.firebaseCustomToken).catch(err =>
+          console.error('Background Firebase sign-in failed:', err)
+        );
+      }
     } catch (err) {
       console.error("Error during sign up:", err.message);
       setError(`Sign up failed: ${err.message}`);
