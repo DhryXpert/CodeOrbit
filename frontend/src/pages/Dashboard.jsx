@@ -24,7 +24,8 @@ export default function Dashboard() {
     handleStopTracking,
     handleLogout,
     handleUnlinkGithub,
-    githubAvatarUrl
+    githubAvatarUrl,
+    isStartingTracking
   } = useDashboard();
 
   if (!user) {
@@ -78,6 +79,7 @@ export default function Dashboard() {
             setDuration={setDuration}
             onConnectGithub={handleConnectGithub}
             onStartTracking={handleStartTracking}
+            isStartingTracking={isStartingTracking}
           />
 
           <ActiveTrackers

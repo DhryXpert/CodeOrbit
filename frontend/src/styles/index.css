@@ -85,6 +85,13 @@ h1, h2, h3, h4 {
   background: var(--accent-hover);
 }
 
+.btn-primary:disabled {
+  background: var(--glass-border) !important;
+  color: var(--text-secondary) !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Inputs */
 .input-field {
   background: rgba(255, 255, 255, 0.05);

@@ -40,7 +40,8 @@ export default function RepoSelector({
   duration,
   setDuration,
   onConnectGithub,
-  onStartTracking
+  onStartTracking,
+  isStartingTracking
 }) {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -157,8 +158,12 @@ export default function RepoSelector({
                       </div>
                     </div>
                     <div className="dashboard-config-actions">
-                      <button onClick={onStartTracking} className="btn-primary dashboard-start-tracking-btn">
-                        <Clock size={18} /> Start Auto-Review
+                      <button 
+                        onClick={onStartTracking} 
+                        className="btn-primary dashboard-start-tracking-btn"
+                        disabled={isStartingTracking}
+                      >
+                        <Clock size={18} /> {isStartingTracking ? 'Starting...' : 'Start Auto-Review'}
                       </button>
                       <button 
                         type="button" 

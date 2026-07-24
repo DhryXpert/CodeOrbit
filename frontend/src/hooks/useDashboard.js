@@ -44,6 +44,7 @@ export function useDashboard() {
   const [activeTrackers, setActiveTrackers] = useState([]);
   const [hasGithubToken, setHasGithubToken] = useState(false);
   const [githubAvatarUrl, setGithubAvatarUrl] = useState(null);
+  const [isStartingTracking, setIsStartingTracking] = useState(false);
 
   // 1. Fetch active trackers from backend
   const loadActiveTrackers = () => 
@@ -128,7 +129,7 @@ export function useDashboard() {
 
   // Start tracking a repo: Sends setup instructions to backend
   const handleStartTracking = async () => {
-    if (!selectedRepo) return;
+    if (!selectedRepo || isStartingTracking) return;
 
     // Check if the selected repo is already tracked
     const isAlreadyTracking = activeTrackers.some(t => {
@@ -138,6 +139,7 @@ export function useDashboard() {
 
     if (isAlreadyTracking) return alert(`"${selectedRepo.name}" is already being tracked!`);
     
+    setIsStartingTracking(true);
     try {
       await apiRequest('/api/webhooks/setup', {
         method: 'POST',
@@ -149,9 +151,11 @@ export function useDashboard() {
       });
       alert(`Successfully started auto-reviewing ${selectedRepo.name}!`);
       setSelectedRepo(null);
-      loadActiveTrackers();
+      await loadActiveTrackers();
     } catch (err) {
       alert(`Failed to start tracking: ${err.message}`);
+    } finally {
+      setIsStartingTracking(false);
     }
   };
 
@@ -236,6 +240,7 @@ export function useDashboard() {
     handleStopTracking,
     handleLogout,
     handleUnlinkGithub,
-    githubAvatarUrl
+    githubAvatarUrl,
+    isStartingTracking
   };
 }
