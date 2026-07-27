@@ -25,7 +25,7 @@ export default function ForgotPassword() {
     try {
       // Configuration telling Firebase where to redirect the user after they click the link
       const actionCodeSettings = {
-        url: `${window.location.origin}/reset-password`,
+        url: `${window.location.origin}/`,
         handleCodeInApp: true,
       };
 
