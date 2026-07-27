@@ -119,7 +119,7 @@ export default function Login() {
             </div>
 
             <div className="auth-form-options">
-              <a href="#" className="auth-link" style={{ marginLeft: 'auto' }}>Forgot Password?</a>
+              <Link to="/forgot-password" className="auth-link" style={{ marginLeft: 'auto' }}>Forgot Password?</Link>
             </div>
 
             <button type="submit" className="auth-submit-btn" disabled={loading}>
