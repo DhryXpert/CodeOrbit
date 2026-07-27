@@ -31,7 +31,18 @@ export default function ResetPassword() {
   // Extract and verify action code (oobCode) from the URL
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
-    const code = queryParams.get('oobCode');
+    let code = queryParams.get('oobCode');
+    
+    // Fallback: If the code is nested inside a 'link' parameter (our workaround)
+    const nestedLink = queryParams.get('link');
+    if (!code && nestedLink) {
+      try {
+        const urlObj = new URL(nestedLink);
+        code = urlObj.searchParams.get('oobCode');
+      } catch (e) {
+        console.error('Failed to parse nested link:', e);
+      }
+    }
     
     if (!code) {
       setCodeError('No password reset code found in the link.');
